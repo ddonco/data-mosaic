@@ -1,0 +1,112 @@
+<template>
+  <div class="bg-stone-100">
+    <div class="flex flex-col items-center justify-center">
+      <div class="flex flex-row w-full justify-items-stretch">
+        <div class="w-1/3"></div>
+        <div class="w-1/3 self-center">
+          <h1 class="text-lg">{{ resources.title }}</h1>
+        </div>
+        <div class="flex w-1/3 items-center justify-center">
+          <button class="" type="submit">
+            <DotsHorizontalIcon
+              class="w-7 h-5"
+              v-on:click="showConfigTrue($event, id)"
+            />
+          </button>
+        </div>
+      </div>
+      <div class="flex flex-row">
+        <div>
+          <div style="display: flex; justify-content: center"></div>
+          <LineChart v-bind="lineChartProps" :styles="myStyles" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { computed } from 'vue';
+import { LineChart, useLineChart } from 'vue-chart-3';
+import { Chart, ChartData, ChartOptions, registerables } from 'chart.js';
+import { DotsHorizontalIcon } from '@heroicons/vue/outline';
+import { useStore } from '/@/store/index';
+
+Chart.register(...registerables);
+
+export default {
+  name: 'ChartWidget',
+  components: { LineChart, DotsHorizontalIcon },
+  props: {
+    id: String,
+    item: {},
+  },
+  setup() {
+    const store = useStore();
+
+    const getData = computed<ChartData<'line'>>(() => ({
+      labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+      datasets: [
+        {
+          label: 'Bitcoin',
+          data: [65, 59, 80, 81, 56, 55, 40],
+          fill: false,
+          borderColor: '#4bc0c0',
+        },
+        {
+          label: 'Ethereum',
+          data: [28, 48, 40, 19, 86, 27, 90],
+          fill: false,
+          borderColor: '#565656',
+        },
+      ],
+    }));
+
+    const options = computed<ChartOptions<'line'>>(() => ({
+      plugins: {
+        legend: {
+          display: false,
+        },
+      },
+    }));
+
+    const { lineChartProps } = useLineChart({
+      options,
+      chartData: getData,
+    });
+
+    const showConfigTrue = (event: any, id: string) => {
+      store.dispatch('showChartConfig', [true, id]);
+    };
+
+    return {
+      getData,
+      options,
+      lineChartProps,
+      showConfigTrue,
+    };
+  },
+  computed: {
+    resources(): any {
+      return this.$store.getters.getResourcesById(this.id);
+    },
+    myStyles() {
+      return {
+        height: this.resources.hpx,
+        width: this.resources.wpx,
+      };
+    },
+  },
+};
+</script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+}
+</style>
